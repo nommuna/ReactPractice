@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>React - Template</title>
+    <script src="../../js/react.min.js"></script>
+    <script src="../../js/react-dom.min.js"></script>
+    <script src="../../js/browser.min.js"></script>
+</head>
+<body>
+    <div id="container"></div>
+
+    <script type="text/babel">
+        //whenever you have data and you want to pass it to a child commponet you can use properties
+        //You can pass in functions as properties
+        var Comment = React.createClass({
+            getInitialState: function () {//sets intial state to false so that the renderNormal shows first
+              return{editing: false}
+            },
+
+            edit:function () {//sets the editing state to true so that the renderForm shows when edit is clicked
+               this.setState({editing:true});
+           },
+
+            remove:function () {
+                this.props.deleteFromBoard(this.props.index); //calls a function from Board that deletes a comment
+
+            },
+            save:function () { //sets the editing state to false so that the form is toggable and can exit
+                this.props.updateCommentText(this.refs.newText.value,this.props.index); //calls a function from Board, that updates a comment
+                this.setState({editing:false})
+
+            },
+
+            renderNormal: function () { //renders the normal with out the form
+                return(
+                        <div>
+                            <div>{this.props.children}</div>
+                            <button onClick={this.edit}>Edit</button>
+                            <button onClick={this.remove}>Remove</button>
+                        </div>
+
+                );
+            },
+
+            renderForm: function () { //renders the from when button is clikced
+                return(
+                        //uses refs on textarea so it can be used in the save function
+                        <div>
+                            <textarea ref="newText" defaultValue={this.props.children}></textarea>
+                            <button onClick={this.save}>Save</button>
+                        </div>
+
+                );
+            },
+
+            render:function () { //If editing state is true the it renders the form if not it renders the normal
+                if(this.state.editing){
+                    return this.renderForm();
+                }else{
+                    return this.renderNormal();
+                }
+            }
+
+        });
+        //creating a parent component that will encompass multiple child components. This will allow the child components to be moved
+        //around and they will notice each other, instead of being stand alone componetns
+        var Board = React.createClass({
+            getInitialState: function () { //A initial state with an array of three strings of text
+                return { //{ is used because its an object
+                    comments: []
+                }
+            },
+
+            add: function (text) {
+              var arr = this.state.comments; //grab the array
+              arr.push(text); //push text into the array
+              this.setState({comments: arr}); //update the new array
+            },
+            removeComment: function (i) {
+                console.log('Removing comment: ' + i);
+                var arr = this.state.comments; // grabs the comments array and sets it to arr
+                arr.splice(i,1); //popped of an item
+                this.setState({comments: arr}); //set the old array to the new array
+            },
+
+            updateComment: function (newText,i) {
+                console.log('Updating comment: ' + i);
+                var arr = this.state.comments;
+                arr[i] = newText;
+                this.setState({comments: arr}); //updates the current array
+            },
+
+            eachComment: function (text, i) { //allows us to loop through the comments using "map" text is the array while i is the index
+                return( //index allows us to grab the index of the comment array, key is for react and dosnt help us
+                        ////passing in properties so this function can use removecomment and updatingcomment
+                        <Comment key= {i} index={i} updateCommentText={this.updateComment} deleteFromBoard = {this.removeComment}>
+                            {text}
+                        </Comment>); // a key is a way to identify each child
+            },
+
+            render:function () {
+                return(
+                       <div>
+                           <button onClick={this.add.bind(null,'Default Text')}>Add New</button>
+                           <div>
+                               {this.state.comments.map(this.eachComment)}
+                           </div>
+                       </div>
+                );
+            }
+        });
+
+        ReactDOM.render(<Board/>,document.getElementById('container'));
+
+    </script>
+</body>
+</html>
